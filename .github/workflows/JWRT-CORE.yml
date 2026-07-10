@@ -183,7 +183,8 @@ jobs:
           $GITHUB_WORKSPACE/Scripts/Settings.sh
           echo "after settings -------------------"
           cat .config
-
+          # 升级apk后，netspeedtest的makefile文件需要更新，否则会报错。
+          sed -i 's/+python3-pkg-resources //g; s/+python3-email /+python3 /g' package/netspeedtest/luci-app-netspeedtest/Makefile
           make defconfig -j$(nproc) && make clean -j$(nproc)
 
       - name: Download Packages
