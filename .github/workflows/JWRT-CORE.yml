@@ -155,6 +155,8 @@ jobs:
       - name: Update Feeds
         run: |
           cd ./wrt/
+          # add siyuan feed
+          echo "src-git siyuan https://github.com/csrbzhb/luci-app-siyuan" >> ./feeds.conf.default
 
           ./scripts/feeds update -a
           ./scripts/feeds install -a
