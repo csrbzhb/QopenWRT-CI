@@ -82,7 +82,7 @@ jobs:
           sudo -E apt -yqq autoremove --purge
           sudo -E apt -yqq autoclean
           sudo -E apt -yqq clean
-          sudo -E apt -yqq install dos2unix python3-netifaces libfuse-dev nodejs npm
+          sudo -E apt -yqq install dos2unix python3-netifaces libfuse-dev
           sudo bash -c 'bash <(curl -sL https://build-scripts.immortalwrt.org/init_build_environment.sh)'
           sudo -E systemctl daemon-reload
           sudo -E timedatectl set-timezone "Asia/Shanghai"
@@ -199,7 +199,15 @@ jobs:
       - name: Compile Firmware
         if: env.WRT_TEST != 'true'
         run: |
+          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+          \. "$HOME/.nvm/nvm.sh"
+          nvm install 24
+          #corepack enable pnpm
+          #npm install -g pnpm@10.28.2 --force
           cd ./wrt/
+          #make tools/install -j$(nproc)
+          #make toolchain/install -j$(nproc)
+          #make package/feeds/siyuan/siyuan/compile V=s
           if [ "$WRT_KMODS" != 'true' ]; then
             make -j$(nproc) || make -j1 V=s
           else
