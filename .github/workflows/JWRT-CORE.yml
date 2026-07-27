@@ -66,6 +66,7 @@ env:
   WRT_TEST: ${{inputs.WRT_TEST}}
   WRT_KMODS: ${{inputs.WRT_KMODS}}
   WRT_EXTRA: ${{inputs.WRT_EXTRA}}
+  WRT_EXTRA_SIYUAN: ${{inputs.WRT_EXTRA_SIYUAN}}
 
 jobs:
   core:
