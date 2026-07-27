@@ -46,6 +46,9 @@ on:
       WRT_EXTRA:
         required: false
         type: string
+      WRT_EXTRA_SIYUAN:
+        required: false
+        type: string
 
 env:
   GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
@@ -156,8 +159,10 @@ jobs:
         run: |
           cd ./wrt/
           # add siyuan feed
-          grep -q "siyuan" feeds.conf.default || echo "src-git siyuan https://github.com/csrbzhb/luci-app-siyuan.git" >> ./feeds.conf.default
-
+          if [ "$WRT_EXTRA_SIYUAN" == 'true' ]; then
+            grep -q "siyuan" feeds.conf.default || echo "src-git siyuan https://github.com/csrbzhb/luci-app-siyuan.git" >> ./feeds.conf.default
+            echo "CONFIG_PACKAGE_luci-app-siyuan=y" >> .config
+          fi
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
@@ -199,19 +204,23 @@ jobs:
       - name: Compile Firmware
         if: env.WRT_TEST != 'true'
         run: |
-          curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
-          \. "$HOME/.nvm/nvm.sh"
-          nvm install 24
-          corepack enable pnpm
-          npm install -g pnpm@10.28.2 --force
           cd ./wrt/
-          #make tools/install -j$(nproc)
-          #make toolchain/install -j$(nproc)
-          #make package/feeds/siyuan/siyuan/compile V=s
-          if [ "$WRT_KMODS" != 'true' ]; then
-            make -j$(nproc) || make -j1 V=s
+          # 编译思源笔记apk包
+          if [ "$WRT_EXTRA_SIYUAN" == 'true' ]; then
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+            \. "$HOME/.nvm/nvm.sh"
+            nvm install 24
+            corepack enable pnpm
+            npm install -g pnpm@10.28.2 --force
+            make tools/install -j$(nproc)
+            make toolchain/install -j$(nproc)
+            make package/feeds/siyuan/siyuan/compile V=s
           else
-            make package/kernel/linux/compile -j$(nproc) || make package/kernel/linux/compile -j1 V=s
+            if [ "$WRT_KMODS" != 'true' ]; then
+              make -j$(nproc) || make -j1 V=s
+            else
+              make package/kernel/linux/compile -j$(nproc) || make package/kernel/linux/compile -j1 V=s
+            fi
           fi
 
       - name: Machine Information
@@ -234,6 +243,7 @@ jobs:
           if [[ $WRT_TEST != 'true' ]]; then
             # 要打包的文件要提前拷出来,不然后面代码会清理掉
             find ./bin/targets/ -name "packages" -type d -exec tar -cjf packages.tar.bz2 -C {} . \;
+            find ./bin/packages/ -name "packages" -type d -exec tar -cjf packages2.tar.bz2 -C {} . \;
             tar -jcf dl.tar.bz2 dl
             FILE_SIZE=$(stat -c%s "dl.tar.bz2")
             if [ $FILE_SIZE -gt $((2*1024*1024*1024)) ]; then
@@ -245,6 +255,7 @@ jobs:
               mv dl.tar.bz2 ./upload/
             fi
             mv packages.tar.bz2 ./upload/
+            mv packages2.tar.bz2 ./upload/
 
             echo "WRT_KVER=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^kernel - \K[\d\.]+' {} \;)" >> $GITHUB_ENV
             echo "WRT_LIST=$(find ./bin/targets/ -type f -name "*.manifest" -exec grep -oP '^luci-(app|theme)[^ ]*' {} \; | tr '\n' ' ')" >> $GITHUB_ENV

@@ -55,7 +55,11 @@ on:
         default: 'true'
         required: true
         type: boolean
-
+      EXTRA_SIYUAN:
+        description: '仅编译思源笔记apk包'
+        default: 'false'
+        required: false
+        type: boolean
 #CI权限
 permissions: write-all
 
@@ -92,3 +96,4 @@ jobs:
       WRT_TEST: ${{inputs.TEST}}
       WRT_KMODS: ${{inputs.KMODS}}
       WRT_EXTRA: ${{inputs.EXTRA}}
+      WRT_EXTRA_SIYUAN: ${{inputs.EXTRA_SIYUAN}}
