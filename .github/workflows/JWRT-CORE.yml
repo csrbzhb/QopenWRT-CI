@@ -187,7 +187,7 @@ jobs:
               cat $GITHUB_WORKSPACE/Config/PACKAGE_EXTRA.txt >> .config
             fi
           else
-            echo "CONFIG_VIDEO_QCOM_IRIS=n\nCONFIG_QCOMTEE=n" >> target/linux/qualcommax/config-6.18
+            echo -e "CONFIG_VIDEO_QCOM_IRIS=n\nCONFIG_QCOMTEE=n" >> target/linux/qualcommax/config-6.18
             cat $GITHUB_WORKSPACE/Config/IPQ60XX-KMODS.txt > .config
           fi
 
