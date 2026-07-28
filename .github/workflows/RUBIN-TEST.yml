@@ -82,4 +82,4 @@ jobs:
       #插件调整
       WRT_PACKAGE: ${{inputs.PACKAGE}}
       #仅输出配置文件
-      EXTOPTION: ${{inputs.EXTOPTION}}
+      WRT_EXTOPTION: ${{inputs.EXTOPTION}}

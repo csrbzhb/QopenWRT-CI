@@ -110,7 +110,7 @@ jobs:
 
       - name: Check Caches
         id: check-cache
-        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
+        if: env.WRT_EXTOPTION != 'ONLY_CONFIG'
         uses: actions/cache@main
         with:
           key: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_HASH}}
@@ -121,7 +121,7 @@ jobs:
             ./wrt/staging_dir/tool*
 
       - name: Update Caches
-        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
+        if: env.WRT_EXTOPTION != 'ONLY_CONFIG'
         run: |
           if [ -d "./wrt/staging_dir" ]; then
             find "./wrt/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r DIR; do
@@ -188,14 +188,14 @@ jobs:
           cat .config
 
       - name: Download Packages
-        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
+        if: env.WRT_EXTOPTION != 'ONLY_CONFIG'
         run: |
           cd ./wrt/
 
           make download -j$(nproc)
 
       - name: Compile Firmware
-        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
+        if: env.WRT_EXTOPTION != 'ONLY_CONFIG'
         run: |
           cd ./wrt/
           # 编译思源笔记apk包
@@ -207,10 +207,9 @@ jobs:
             npm install -g pnpm@10.28.2 --force
             make tools/install -j$(nproc)
             make toolchain/install -j$(nproc)
-            make package/feeds/siyuan/luci-app-siyuan/compile V=s
+            make package/feeds/siyuan/luci-app-siyuan/compile -j$(nproc) || make package/feeds/siyuan/luci-app-siyuan/compile V=s
           else
               make -j$(nproc) || make -j1 V=s
-            fi
           fi
 
       - name: Machine Information
