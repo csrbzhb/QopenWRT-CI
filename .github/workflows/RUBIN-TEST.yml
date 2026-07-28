@@ -39,26 +39,16 @@ on:
       PACKAGE:
         required: false
         type: string
-      TEST:
-        description: '仅输出配置文件，不编译固件。'
-        default: 'false'
-        required: true
-        type: boolean
-      KMODS:
-        default: 'false'
-        description: '启用后会编译所有内核模块。'
-        required: true
-        type: boolean
-      EXTRA:
-        description: '是否启用额外软件包，包追加到.config末尾'
-        default: 'true'
-        required: true
-        type: boolean
-      EXTRA_SIYUAN:
-        description: '仅编译思源笔记apk包'
-        default: 'false'
+      EXTOPTION:
+        description: '配置选项：1.添加编译额外软件包 2.仅编译配置文件 3.仅编译内核模块 4.仅编译思源笔记apk包'
+        default: 'ADD_EXTRA'
         required: false
-        type: boolean
+        type: choice
+        options:
+          - ADD_EXTRA
+          - ONLY_CONFIG
+          - ONLY_ALLKMODS
+          - ONLY_SIYUAN
 #CI权限
 permissions: write-all
 
@@ -92,7 +82,4 @@ jobs:
       #插件调整
       WRT_PACKAGE: ${{inputs.PACKAGE}}
       #仅输出配置文件
-      WRT_TEST: ${{inputs.TEST}}
-      WRT_KMODS: ${{inputs.KMODS}}
-      WRT_EXTRA: ${{inputs.EXTRA}}
-      WRT_EXTRA_SIYUAN: ${{inputs.EXTRA_SIYUAN}}
+      EXTOPTION: ${{inputs.EXTOPTION}}

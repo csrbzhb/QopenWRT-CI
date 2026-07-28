@@ -37,16 +37,7 @@ on:
       WRT_PACKAGE:
         required: false
         type: string
-      WRT_TEST:
-        required: false
-        type: string
-      WRT_KMODS:
-        required: false
-        type: string
-      WRT_EXTRA:
-        required: false
-        type: string
-      WRT_EXTRA_SIYUAN:
+      WRT_EXTOPTION:
         required: false
         type: string
 
@@ -63,10 +54,7 @@ env:
   WRT_BRANCH: ${{inputs.WRT_BRANCH}}
   WRT_SOURCE: ${{inputs.WRT_SOURCE}}
   WRT_PACKAGE: ${{inputs.WRT_PACKAGE}}
-  WRT_TEST: ${{inputs.WRT_TEST}}
-  WRT_KMODS: ${{inputs.WRT_KMODS}}
-  WRT_EXTRA: ${{inputs.WRT_EXTRA}}
-  WRT_EXTRA_SIYUAN: ${{inputs.WRT_EXTRA_SIYUAN}}
+  WRT_EXTOPTION: ${{inputs.WRT_EXTOPTION}}
 
 jobs:
   core:
@@ -122,7 +110,7 @@ jobs:
 
       - name: Check Caches
         id: check-cache
-        if: env.WRT_TEST != 'true'
+        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
         uses: actions/cache@main
         with:
           key: ${{env.WRT_CONFIG}}-${{env.WRT_INFO}}-${{env.WRT_HASH}}
@@ -133,7 +121,7 @@ jobs:
             ./wrt/staging_dir/tool*
 
       - name: Update Caches
-        if: env.WRT_TEST != 'true'
+        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
         run: |
           if [ -d "./wrt/staging_dir" ]; then
             find "./wrt/staging_dir" -type d -name "stamp" -not -path "*target*" | while read -r DIR; do
@@ -160,7 +148,7 @@ jobs:
         run: |
           cd ./wrt/
           # add siyuan feed
-          if [ "$WRT_EXTRA_SIYUAN" == 'true' ]; then
+          if [ "$WRT_EXTOPTION" == "ONLY_SIYUAN" ]; then
             grep -q "siyuan" feeds.conf.default || echo "src-git siyuan https://github.com/csrbzhb/luci-app-siyuan.git" >> ./feeds.conf.default
             echo "CONFIG_PACKAGE_luci-app-siyuan=y" >> .config
           fi
@@ -177,13 +165,13 @@ jobs:
       - name: Custom Settings
         run: |
           cd ./wrt/
-          if [ "$WRT_KMODS" != 'true' ]; then
+          if [ "$WRT_EXTOPTION" != "ONLY_ALLKMODS" ]; then
             if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
               cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
             else
               cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
             fi
-            if [ "$WRT_EXTRA" == 'true' ]; then
+            if [ "$WRT_EXTOPTION" == "ADD_EXTRA" ]; then
               cat $GITHUB_WORKSPACE/Config/PACKAGE_EXTRA.txt >> .config
             fi
           else
@@ -200,18 +188,18 @@ jobs:
           cat .config
 
       - name: Download Packages
-        if: env.WRT_TEST != 'true'
+        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
         run: |
           cd ./wrt/
 
           make download -j$(nproc)
 
       - name: Compile Firmware
-        if: env.WRT_TEST != 'true'
+        if: env.WRT_EXTOPTION != "ONLY_CONFIG"
         run: |
           cd ./wrt/
           # 编译思源笔记apk包
-          if [ "$WRT_EXTRA_SIYUAN" == 'true' ]; then
+          if [ "$WRT_EXTOPTION" == "ONLY_SIYUAN" ]; then
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
             \. "$HOME/.nvm/nvm.sh"
             nvm install 24
@@ -242,7 +230,7 @@ jobs:
           cd ./wrt/ && mkdir ./upload/
 
           cp -f ./.config ./upload/Config-"$WRT_CONFIG"-"$WRT_INFO"-"$WRT_BRANCH"-"$WRT_DATE".txt
-          if [[ $WRT_TEST != 'true' ]]; then
+          if [[ $WRT_EXTOPTION != "ONLY_CONFIG" ]]; then
             # 要打包的文件要提前拷出来,不然后面代码会清理掉
             find ./bin/targets/ -name "packages" -type d -exec tar -cjf packages.tar.bz2 -C {} . \;
             find ./bin/packages/ -name "packages" -type d -exec tar -cjf packages2.tar.bz2 -C {} . \;
