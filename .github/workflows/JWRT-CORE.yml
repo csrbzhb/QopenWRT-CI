@@ -177,23 +177,27 @@ jobs:
       - name: Custom Settings
         run: |
           cd ./wrt/
-
-          if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
-            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
+          if [ "$WRT_KMODS" != 'true' ]; then
+            if [[ "${WRT_CONFIG,,}" == *"test"* ]]; then
+              cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt >> .config
+            else
+              cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
+            fi
+            if [ "$WRT_EXTRA" == 'true' ]; then
+              cat $GITHUB_WORKSPACE/Config/PACKAGE_EXTRA.txt >> .config
+            fi
           else
-            cat $GITHUB_WORKSPACE/Config/$WRT_CONFIG.txt $GITHUB_WORKSPACE/Config/GENERAL.txt >> .config
-          fi
-          if [ "$WRT_EXTRA" == 'true' ]; then
-            cat $GITHUB_WORKSPACE/Config/PACKAGE_EXTRA.txt >> .config
+            echo "CONFIG_VIDEO_QCOM_IRIS=n\nCONFIG_QCOMTEE=n" >> target/linux/qualcommax/config-6.18
+            cat $GITHUB_WORKSPACE/Config/IPQ60XX-KMODS.txt > .config
           fi
 
           echo "before settings -------------------"
           $GITHUB_WORKSPACE/Scripts/Settings.sh
           echo "after settings -------------------"
-          cat .config
           # 升级apk后，netspeedtest的makefile文件需要更新，否则会报错。
           sed -i 's/+python3-pkg-resources //g; s/+python3-email /+python3 /g' package/netspeedtest/luci-app-netspeedtest/Makefile
           make defconfig -j$(nproc) && make clean -j$(nproc)
+          cat .config
 
       - name: Download Packages
         if: env.WRT_TEST != 'true'
@@ -217,10 +221,7 @@ jobs:
             make toolchain/install -j$(nproc)
             make package/feeds/siyuan/luci-app-siyuan/compile V=s
           else
-            if [ "$WRT_KMODS" != 'true' ]; then
               make -j$(nproc) || make -j1 V=s
-            else
-              make package/kernel/linux/compile -j$(nproc) || make package/kernel/linux/compile -j1 V=s
             fi
           fi
 
