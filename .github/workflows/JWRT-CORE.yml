@@ -148,8 +148,8 @@ jobs:
         run: |
           cd ./wrt/
           # add siyuan feed
+          grep -q "siyuan" feeds.conf.default || echo "src-git siyuan https://github.com/csrbzhb/luci-app-siyuan.git" >> ./feeds.conf.default
           if [ "$WRT_EXTOPTION" == "ONLY_SIYUAN" ]; then
-            grep -q "siyuan" feeds.conf.default || echo "src-git siyuan https://github.com/csrbzhb/luci-app-siyuan.git" >> ./feeds.conf.default
             echo "CONFIG_PACKAGE_luci-app-siyuan=y" >> .config
           fi
           ./scripts/feeds update -a
